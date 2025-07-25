@@ -1,51 +1,110 @@
 package com.empire_mammoth.rickandmorty.ui.view
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.empire_mammoth.rickandmorty.ui.viewmodel.CharactersViewModel
 import com.empire_mammoth.rickandmorty.data.model.Character
+import com.empire_mammoth.rickandmorty.ui.viewmodel.CharactersViewModel
+import coil.compose.AsyncImage
+import androidx.compose.runtime.collectAsState
 
 @Composable
-fun CharactersScreen(viewModel: CharactersViewModel = hiltViewModel()) {
-    val characters by viewModel.characters.collectAsState()
-    val paginationInfo by viewModel.paginationInfo.collectAsState()
+fun CharactersScreen(
+    viewModel: CharactersViewModel = hiltViewModel()
+) {
+    val characters by remember { viewModel.characters }.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadCharacters()
+    val lazyGridState = rememberLazyGridState()
+
+    // Автоматическая подгрузка при прокрутке
+    LaunchedEffect(lazyGridState) {
+        snapshotFlow { lazyGridState.layoutInfo.visibleItemsInfo }
+            .collect {
+                if (it.lastOrNull()?.index == characters.size - 1 && !isLoading) {
+                    viewModel.loadCharacters()
+                }
+            }
     }
 
-    if (isLoading) {
-        CircularProgressIndicator(Modifier.fillMaxSize())
-    } else if (error != null) {
-        Text("Error: $error")
-    } else {
-        LazyColumn {
-            items(characters) { character ->
-                CharacterItem(character = character)
-            }
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (characters.isEmpty() && isLoading) {
+            CenterLoading()
+        } else if (error != null) {
+            ErrorMessage(error = error, onRetry = { viewModel.loadCharacters() })
+        } else {
+            CharacterGrid(
+                characters = characters,
+                gridState = lazyGridState,
+                isLoading = isLoading
+            )
+        }
+    }
+}
 
-            paginationInfo?.next?.let {
-                item {
-                    Button(
-                        onClick = {
-                            val nextPage = it.substringAfter("page=").toIntOrNull()
-                            nextPage?.let { page -> viewModel.loadCharacters(page) }
-                        }
-                    ) {
-                        Text("Load Next Page")
-                    }
+@Composable
+private fun CharacterGrid(
+    characters: List<Character>,
+    gridState: LazyGridState,
+    isLoading: Boolean
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        state = gridState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(8.dp)
+    ) {
+        items(characters) { character ->
+            CharacterCard(character = character)
+        }
+
+        if (isLoading) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
         }
@@ -53,6 +112,110 @@ fun CharactersScreen(viewModel: CharactersViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun CharacterItem(character: Character) {
-    Text(text = character.name)
+fun CharacterCard(character: Character) {
+    Card(
+        modifier = Modifier
+            .padding(4.dp)
+            .fillMaxWidth()
+            .aspectRatio(0.8f),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Аватар персонажа
+            AsyncImage(
+                model = character.image,
+                contentDescription = character.name,
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Имя персонажа
+            Text(
+                text = character.name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Детали персонажа
+            CharacterDetails(character)
+        }
+    }
+}
+
+@Composable
+fun CharacterDetails(character: Character) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Статус с цветным индикатором
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(
+                        color = when (character.status) {
+                            "Alive" -> Color.Green
+                            "Dead" -> Color.Red
+                            else -> Color.Gray
+                        },
+                        shape = CircleShape
+                    )
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = character.status,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Вид и пол
+        Text(
+            text = "${character.species} • ${character.gender}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+    }
+}
+
+@Composable
+fun CenterLoading() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+fun ErrorMessage(error: String?, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = error ?: "Unknown error",
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onRetry) {
+            Text("Retry")
+        }
+    }
 }

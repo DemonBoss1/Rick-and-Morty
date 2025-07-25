@@ -1,5 +1,8 @@
 package com.empire_mammoth.rickandmorty.ui.viewmodel
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.empire_mammoth.rickandmorty.data.model.Info
@@ -13,14 +16,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CharactersViewModel @Inject constructor(
-    private val repository: CharacterRepository,
+    private val repository: CharacterRepository
 ) : ViewModel() {
-
     private val _characters = MutableStateFlow<List<Character>>(emptyList())
     val characters: StateFlow<List<Character>> = _characters
-
-    private val _paginationInfo = MutableStateFlow<Info?>(null)
-    val paginationInfo: StateFlow<Info?> = _paginationInfo
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -28,46 +27,26 @@ class CharactersViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    fun loadCharacters(page: Int = 1) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-            try {
-                val response = repository.loadCharactersPage(page)
-                _characters.value = response.results
-                _paginationInfo.value = response.info
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Unknown error occurred"
-            } finally {
-                _isLoading.value = false
-            }
-        }
+    private var currentPage = 1
+    private var totalPages = 1
+
+    init {
+        loadCharacters()
     }
 
-    fun filterCharacters(
-        name: String? = null,
-        status: String? = null,
-        species: String? = null,
-        type: String? = null,
-        gender: String? = null,
-        page: Int? = null,
-    ) {
+    fun loadCharacters() {
+        if (_isLoading.value || currentPage > totalPages) return
+
+        _isLoading.value = true
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
             try {
-                val response = repository.filterCharacters(
-                    name = name,
-                    status = status,
-                    species = species,
-                    type = type,
-                    gender = gender,
-                    page = page
-                )
-                _characters.value = response.results
-                _paginationInfo.value = response.info
+                val response = repository.loadCharactersPage(currentPage)
+                _characters.value += response.results
+                totalPages = response.info.pages
+                currentPage++
+                _error.value = null
             } catch (e: Exception) {
-                _error.value = e.message ?: "Unknown error occurred"
+                _error.value = e.message ?: "Unknown error"
             } finally {
                 _isLoading.value = false
             }
