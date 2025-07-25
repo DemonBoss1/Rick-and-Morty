@@ -11,12 +11,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.empire_mammoth.rickandmorty.ui.viewmodel.CharactersViewModel
 import com.empire_mammoth.rickandmorty.data.model.Character
 
 @Composable
-fun CharactersScreen(viewModel: CharactersViewModel = viewModel()) {
+fun CharactersScreen(viewModel: CharactersViewModel = hiltViewModel()) {
     val characters by viewModel.characters.collectAsState()
     val paginationInfo by viewModel.paginationInfo.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()

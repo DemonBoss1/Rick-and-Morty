@@ -1,13 +1,17 @@
 package com.empire_mammoth.rickandmorty.data.repository
 
 import com.empire_mammoth.rickandmorty.data.api.RickAndMortyApi
+import com.empire_mammoth.rickandmorty.data.api.RickAndMortyApiService
 import com.empire_mammoth.rickandmorty.data.model.CharactersResponse
 import com.empire_mammoth.rickandmorty.data.model.Character
+import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.delay
+import javax.inject.Inject
 
-class CharacterRepository {
-    private val api = RickAndMortyApi.service
-
+@ViewModelScoped
+class CharacterRepository @Inject constructor(
+    private val api: RickAndMortyApiService
+)  {
     suspend fun loadAllCharacters(): List<Character> {
         val allCharacters = mutableListOf<Character>()
         var currentPage = 1

@@ -5,12 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.empire_mammoth.rickandmorty.data.model.Info
 import com.empire_mammoth.rickandmorty.data.model.Character
 import com.empire_mammoth.rickandmorty.data.repository.CharacterRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CharactersViewModel : ViewModel() {
-    private val repository = CharacterRepository()
+@HiltViewModel
+class CharactersViewModel @Inject constructor(
+    private val repository: CharacterRepository,
+) : ViewModel() {
 
     private val _characters = MutableStateFlow<List<Character>>(emptyList())
     val characters: StateFlow<List<Character>> = _characters
@@ -46,7 +50,7 @@ class CharactersViewModel : ViewModel() {
         species: String? = null,
         type: String? = null,
         gender: String? = null,
-        page: Int? = null
+        page: Int? = null,
     ) {
         viewModelScope.launch {
             _isLoading.value = true
