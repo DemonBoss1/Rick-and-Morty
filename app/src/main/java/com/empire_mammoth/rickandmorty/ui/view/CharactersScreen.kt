@@ -52,6 +52,7 @@ import com.empire_mammoth.rickandmorty.data.model.Character
 import com.empire_mammoth.rickandmorty.ui.viewmodel.CharactersViewModel
 import coil.compose.AsyncImage
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,7 +145,7 @@ fun CharacterCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(0.85f),
+            .aspectRatio(0.8f),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = MaterialTheme.shapes.medium,
         onClick = onClick
