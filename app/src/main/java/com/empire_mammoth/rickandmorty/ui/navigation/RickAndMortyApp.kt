@@ -35,6 +35,9 @@ fun RickAndMortyApp() {
             val args = backStackEntry.toRoute<AppScreens.CharacterDetails>()
             CharacterDetailsScreen(
                 characterId = args.id,
+                onBackClick = {
+                    navController.popBackStack()
+                }
             )
         }
 
