@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.empire_mammoth.rickandmorty.domain.model.AppScreens
+import com.empire_mammoth.rickandmorty.ui.view.CharacterDetailsScreen
 import com.empire_mammoth.rickandmorty.ui.view.CharactersScreen
 
 @Composable
@@ -22,8 +23,9 @@ fun RickAndMortyApp() {
                 onCharacterSelected = { id ->
                     navController.navigate(AppScreens.CharacterDetails(id))
                 },
-                onFilterClick = { status, species, gender ->
-                    navController.navigate(AppScreens.FilterOptions(status, species, gender))
+                onFilterClick = {
+//                                status, species, gender ->
+//                    navController.navigate(AppScreens.FilterOptions(status, species, gender))
                 }
             )
         }
@@ -33,9 +35,6 @@ fun RickAndMortyApp() {
             val args = backStackEntry.toRoute<AppScreens.CharacterDetails>()
             CharacterDetailsScreen(
                 characterId = args.id,
-                onEpisodeClick = { episodeId ->
-                    navController.navigate(AppScreens.EpisodeDetails(episodeId))
-                }
             )
         }
 

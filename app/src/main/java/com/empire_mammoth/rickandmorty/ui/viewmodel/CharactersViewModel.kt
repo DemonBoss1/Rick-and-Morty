@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.empire_mammoth.rickandmorty.data.model.Info
 import com.empire_mammoth.rickandmorty.data.model.Character
 import com.empire_mammoth.rickandmorty.data.repository.CharacterRepository
+import com.empire_mammoth.rickandmorty.domain.model.CharacterFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -1,9 +1,8 @@
 package com.empire_mammoth.rickandmorty.data.repository
 
-import com.empire_mammoth.rickandmorty.data.api.RickAndMortyApi
 import com.empire_mammoth.rickandmorty.data.api.RickAndMortyApiService
-import com.empire_mammoth.rickandmorty.data.model.CharactersResponse
 import com.empire_mammoth.rickandmorty.data.model.Character
+import com.empire_mammoth.rickandmorty.data.model.CharactersResponse
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.delay
 import javax.inject.Inject
@@ -23,7 +22,6 @@ class CharacterRepository @Inject constructor(
             totalPages = response.info.pages
             currentPage++
 
-            // Можно добавить небольшую задержку между запросами
             delay(100)
         }
 
@@ -51,4 +49,6 @@ class CharacterRepository @Inject constructor(
             gender = gender
         )
     }
+
+    suspend fun getCharacter(characterId: Int) = api.getCharacter(characterId)
 }
