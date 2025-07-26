@@ -1,11 +1,7 @@
 package com.empire_mammoth.rickandmorty.ui.viewmodel
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.empire_mammoth.rickandmorty.data.model.Info
 import com.empire_mammoth.rickandmorty.data.model.Character
 import com.empire_mammoth.rickandmorty.data.repository.CharacterRepository
 import com.empire_mammoth.rickandmorty.domain.model.CharacterFilter
@@ -28,8 +24,8 @@ class CharactersViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    private val _filterState = MutableStateFlow<CharacterFilter?>(null)
-    val filterState: StateFlow<CharacterFilter?> = _filterState
+    private val _filter = MutableStateFlow<CharacterFilter?>(null)
+    val currentFilter: StateFlow<CharacterFilter?> = _filter
 
     private var currentPage = 1
     private var totalPages = 1
@@ -57,17 +53,13 @@ class CharactersViewModel @Inject constructor(
         }
     }
 
-    fun refreshCharacters() {
-        loadCharacters()
-    }
-
     fun applyFilter(filter: CharacterFilter) {
-        _filterState.value = filter
+        _filter.value = filter
         loadCharacters()
     }
 
     fun clearFilter() {
-        _filterState.value = null
+        _filter.value = null
         loadCharacters()
     }
 }

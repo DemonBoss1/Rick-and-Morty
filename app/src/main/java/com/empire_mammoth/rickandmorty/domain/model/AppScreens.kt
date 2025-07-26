@@ -5,15 +5,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class AppScreens {
     @Serializable
-    object CharactersList : AppScreens()
+    data class CharactersList(val filter: Map<String, String>) : AppScreens()
 
     @Serializable
     data class CharacterDetails(val id: Int) : AppScreens()
 
     @Serializable
-    data class FilterOptions(
-        val status: String? = null,
-        val species: String? = null,
-        val gender: String? = null
-    ) : AppScreens()
+    data class FilterScreen(val currentFilter: Map<String, String>) : AppScreens()
 }

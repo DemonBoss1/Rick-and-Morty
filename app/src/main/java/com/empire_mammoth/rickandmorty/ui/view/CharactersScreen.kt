@@ -1,7 +1,6 @@
 package com.empire_mammoth.rickandmorty.ui.view
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,14 +20,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -51,8 +46,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.empire_mammoth.rickandmorty.data.model.Character
 import com.empire_mammoth.rickandmorty.ui.viewmodel.CharactersViewModel
 import coil.compose.AsyncImage
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +57,7 @@ fun CharactersScreen(
     val characters by remember { viewModel.characters }.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
-    val filterState by viewModel.filterState.collectAsState()
+    val filterState by viewModel.currentFilter.collectAsState()
 
     val lazyGridState = rememberLazyGridState()
 
