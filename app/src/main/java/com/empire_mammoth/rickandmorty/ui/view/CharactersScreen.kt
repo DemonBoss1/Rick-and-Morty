@@ -15,16 +15,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,15 +54,17 @@ import androidx.compose.runtime.collectAsState
 
 @Composable
 fun CharactersScreen(
-    viewModel: CharactersViewModel = hiltViewModel()
+    viewModel: CharactersViewModel = hiltViewModel(),
+    onCharacterSelected: (Int) -> Unit,
+    onFilterClick: () -> Unit,
 ) {
     val characters by remember { viewModel.characters }.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
 
     val lazyGridState = rememberLazyGridState()
 
-    // Автоматическая подгрузка при прокрутке
     LaunchedEffect(lazyGridState) {
         snapshotFlow { lazyGridState.layoutInfo.visibleItemsInfo }
             .collect {
@@ -66,18 +73,33 @@ fun CharactersScreen(
                 }
             }
     }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (characters.isEmpty() && isLoading) {
-            CenterLoading()
-        } else if (error != null) {
-            ErrorMessage(error = error, onRetry = { viewModel.loadCharacters() })
-        } else {
-            CharacterGrid(
-                characters = characters,
-                gridState = lazyGridState,
-                isLoading = isLoading
+    Scaffold(
+        topBar = {
+            RickAndMortyTopBar(
+                title = "Characters",
+                showFilter = true,
+                onFilterClick = onFilterClick,
+                filterActive = filterState != null
             )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            if (characters.isEmpty() && isLoading) {
+                FullScreenLoading()
+            } else if (error != null) {
+                ErrorState(error = error, onRetry = { viewModel.loadCharacters() })
+            } else {
+                CharacterGrid(
+                    characters = characters,
+                    gridState = lazyGridState,
+                    isLoading = isLoading,
+                    onCharacterClick = onCharacterSelected
+                )
+            }
         }
     }
 }
@@ -86,7 +108,8 @@ fun CharactersScreen(
 private fun CharacterGrid(
     characters: List<Character>,
     gridState: LazyGridState,
-    isLoading: Boolean
+    isLoading: Boolean,
+    onCharacterClick: (Int) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -94,38 +117,40 @@ private fun CharacterGrid(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(8.dp)
     ) {
-        items(characters) { character ->
-            CharacterCard(character = character)
+        items(characters, key = { it.id }) { character ->
+            CharacterCard(
+                character = character,
+                modifier = Modifier.padding(4.dp),
+                onClick = { onCharacterClick(character.id) }
+            )
         }
 
         if (isLoading) {
-            item {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+            item(span = { GridItemSpan(2) }) {
+                LoadingItem()
             }
         }
     }
 }
 
 @Composable
-fun CharacterCard(character: Character) {
+fun CharacterCard(
+    character: Character,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
     Card(
-        modifier = Modifier
-            .padding(4.dp)
+        modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(0.8f),
+            .aspectRatio(0.85f),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
+        onClick = onClick
     ) {
         Column(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Аватар персонажа
             AsyncImage(
                 model = character.image,
                 contentDescription = character.name,
@@ -135,9 +160,8 @@ fun CharacterCard(character: Character) {
                 contentScale = ContentScale.Crop
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Имя персонажа
             Text(
                 text = character.name,
                 style = MaterialTheme.typography.titleMedium,
@@ -148,9 +172,8 @@ fun CharacterCard(character: Character) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Детали персонажа
             CharacterDetails(character)
         }
     }
@@ -158,12 +181,17 @@ fun CharacterCard(character: Character) {
 
 @Composable
 fun CharacterDetails(character: Character) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Статус с цветным индикатором
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 4.dp)
+        ) {
             Box(
                 modifier = Modifier
-                    .size(8.dp)
+                    .size(10.dp)
                     .background(
                         color = when (character.status) {
                             "Alive" -> Color.Green
@@ -173,16 +201,14 @@ fun CharacterDetails(character: Character) {
                         shape = CircleShape
                     )
             )
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = character.status,
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Вид и пол
         Text(
             text = "${character.species} • ${character.gender}",
             style = MaterialTheme.typography.bodySmall,
@@ -192,7 +218,19 @@ fun CharacterDetails(character: Character) {
 }
 
 @Composable
-fun CenterLoading() {
+private fun LoadingItem() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun FullScreenLoading() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -202,18 +240,31 @@ fun CenterLoading() {
 }
 
 @Composable
-fun ErrorMessage(error: String?, onRetry: () -> Unit) {
+private fun ErrorState(
+    error: String?,
+    onRetry: () -> Unit
+) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = error ?: "Unknown error",
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodyLarge
+        Icon(
+            imageVector = Icons.Default.Warning,
+            contentDescription = "Error",
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(48.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = error ?: "Unknown error occurred",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(24.dp))
         Button(onClick = onRetry) {
             Text("Retry")
         }

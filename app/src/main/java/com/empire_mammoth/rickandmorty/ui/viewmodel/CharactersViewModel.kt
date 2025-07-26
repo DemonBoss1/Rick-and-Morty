@@ -27,6 +27,9 @@ class CharactersViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _filterState = MutableStateFlow<CharacterFilter?>(null)
+    val filterState: StateFlow<CharacterFilter?> = _filterState
+
     private var currentPage = 1
     private var totalPages = 1
 
@@ -51,5 +54,19 @@ class CharactersViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    fun refreshCharacters() {
+        loadCharacters()
+    }
+
+    fun applyFilter(filter: CharacterFilter) {
+        _filterState.value = filter
+        loadCharacters()
+    }
+
+    fun clearFilter() {
+        _filterState.value = null
+        loadCharacters()
     }
 }
