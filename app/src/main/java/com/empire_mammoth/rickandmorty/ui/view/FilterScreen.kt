@@ -2,88 +2,170 @@ package com.empire_mammoth.rickandmorty.ui.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.empire_mammoth.rickandmorty.domain.model.CharacterFilter
 import com.empire_mammoth.rickandmorty.domain.model.CharacterGender
 import com.empire_mammoth.rickandmorty.domain.model.CharacterStatus
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterScreen(
+    currentFilter: CharacterFilter? = null,
     onApplyFilter: (CharacterFilter) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var status by remember { mutableStateOf<CharacterStatus?>(null) }
-    var species by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf<CharacterGender?>(null) }
+    var status by remember { mutableStateOf(currentFilter?.status) }
+    var species by remember { mutableStateOf(currentFilter?.species ?: "") }
+    var gender by remember { mutableStateOf(currentFilter?.gender) }
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Status", style = MaterialTheme.typography.titleSmall)
-        CharacterStatus.entries.forEach { item ->
-            FilterChip(
-                selected = status == item,
-                onClick = { status = if (status == item) null else item },
-                label = { Text(item.name) },
-                modifier = Modifier.padding(end = 8.dp, bottom = 8.dp)
-            )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+    ) {
+        // Секция статуса
+        Text(
+            text = "Status",
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(bottom = 16.dp)
+        ) {
+            CharacterStatus.entries.forEach { item ->
+                FilterChip(
+                    selected = status == item,
+                    onClick = { status = if (status == item) null else item },
+                    label = { Text(item.name) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
         }
 
+        // Поле для вида
         OutlinedTextField(
             value = species,
             onValueChange = { species = it },
             label = { Text("Species") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp),
+            shape = MaterialTheme.shapes.medium
         )
 
-        Text("Gender", style = MaterialTheme.typography.titleSmall)
-        CharacterGender.entries.forEach { item ->
-            FilterChip(
-                selected = gender == item,
-                onClick = { gender = if (gender == item) null else item },
-                label = { Text(item.name) },
-                modifier = Modifier.padding(end = 8.dp, bottom = 8.dp)
-            )
+        // Секция пола
+        Text(
+            text = "Gender",
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(bottom = 24.dp)
+        ) {
+            CharacterGender.entries.forEach { item ->
+                FilterChip(
+                    selected = gender == item,
+                    onClick = { gender = if (gender == item) null else item },
+                    label = { Text(item.name) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
         }
 
+        // Кнопки действий (закреплены внизу)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(onClick = onDismiss) {
-                Text("Cancel")
+            TextButton(
+                onClick = {
+                    status = null
+                    species = ""
+                    gender = null
+                }
+            ) {
+                Text("Reset")
             }
 
-            Button(
-                onClick = {
-                    onApplyFilter(
-                        CharacterFilter(
-                            status = status,
-                            species = species.takeIf { it.isNotBlank() },
-                            gender = gender
-                        )
-                    )
-                },
-                enabled = status != null || species.isNotBlank() || gender != null
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Apply Filters")
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
+                    Text("Cancel")
+                }
+
+                Button(
+                    onClick = {
+                        onApplyFilter(
+                            CharacterFilter(
+                                status = status,
+                                species = species.takeIf { it.isNotBlank() },
+                                gender = gender
+                            )
+                        )
+                    },
+                    enabled = status != null || species.isNotBlank() || gender != null
+                ) {
+                    Text("Apply")
+                }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun FilterScreenPreview() {
+    MaterialTheme {
+        FilterScreen(
+            onApplyFilter = {},
+            onDismiss = {}
+        )
     }
 }
