@@ -23,13 +23,12 @@ import com.empire_mammoth.rickandmorty.domain.model.CharacterStatus
 
 @Composable
 fun FilterScreen(
-    currentFilter: CharacterFilter?,
     onApplyFilter: (CharacterFilter) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var status by remember { mutableStateOf(currentFilter?.status) }
-    var species by remember { mutableStateOf(currentFilter?.species ?: "") }
-    var gender by remember { mutableStateOf(currentFilter?.gender) }
+    var status by remember { mutableStateOf<CharacterStatus?>(null) }
+    var species by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf<CharacterGender?>(null) }
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text("Status", style = MaterialTheme.typography.titleSmall)

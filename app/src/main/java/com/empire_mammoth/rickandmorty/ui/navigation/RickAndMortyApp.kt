@@ -16,41 +16,62 @@ import com.empire_mammoth.rickandmorty.ui.viewmodel.CharactersViewModel
 @Composable
 fun RickAndMortyApp() {
     val navController = rememberNavController()
-    val viewModel: CharactersViewModel = hiltViewModel()
 
     NavHost(
-        navController = navController, startDestination = AppScreens.CharactersList(emptyMap())
+        navController = navController,
+        startDestination = AppScreens.CharactersList
     ) {
-        composable<AppScreens.CharactersList> { backStackEntry ->
-            val filter = backStackEntry.toRoute<AppScreens.CharactersList>().filter
-            CharactersScreen(onCharacterSelected = { id ->
-                navController.navigate(AppScreens.CharacterDetails(id))
-            }, onFilterClick = {
-                viewModel.currentFilter.value?.let {
-                    navController.navigate(AppScreens.FilterScreen(viewModel.currentFilter.value!!.toQueryMap()))
+        // Characters List Screen
+        composable<AppScreens.CharactersList> {
+            CharactersScreen(
+                onCharacterSelected = { id ->
+                    navController.navigate(AppScreens.CharacterDetails(id))
+                },
+                onFilterClick = {
+                    navController.navigate(AppScreens.FilterScreen)
                 }
-            })
+            )
         }
 
+        // Character Details Screen
         composable<AppScreens.CharacterDetails> { backStackEntry ->
             val args = backStackEntry.toRoute<AppScreens.CharacterDetails>()
             CharacterDetailsScreen(
-                characterId = args.id, onBackClick = {
-                    navController.popBackStack()
-                })
+                characterId = args.id,
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
-//        composable<AppScreens.FilterScreen> { backStackEntry ->
-//            val args = backStackEntry.toRoute<AppScreens.FilterScreen>()
-//            FilterScreen(currentFilter = args.currentFilter, onApplyFilter = { newFilter ->
-//                navController.navigate(
-//                    AppScreens.CharactersList(newFilter.toQueryMap())
-//                ) {
-//                    popUpTo<AppScreens.CharactersList>()
-//                }
-//            }, onDismiss = {
-//                navController.popBackStack()
-//            })
-//        }
+        // Filter Screen
+        composable<AppScreens.FilterScreen> {
+            FilterScreen(
+                onApplyFilter = { filter ->
+                    navController.navigate(
+                        AppScreens.FilterOptions(
+                            status = filter.status?.name,
+                            species = filter.species,
+                            gender = filter.gender?.name
+                        )
+                    ) {
+                        popUpTo<AppScreens.CharactersList>()
+                    }
+                },
+                onDismiss = { navController.popBackStack() }
+            )
+        }
+
+        // Filter Options Handling
+        composable<AppScreens.FilterOptions> { backStackEntry ->
+            val args = backStackEntry.toRoute<AppScreens.FilterOptions>()
+            // Apply filters and show characters list
+            CharactersScreen(
+                onCharacterSelected = { id ->
+                    navController.navigate(AppScreens.CharacterDetails(id))
+                },
+                onFilterClick = {
+                    navController.navigate(AppScreens.FilterScreen)
+                }
+            )
+        }
     }
 }
