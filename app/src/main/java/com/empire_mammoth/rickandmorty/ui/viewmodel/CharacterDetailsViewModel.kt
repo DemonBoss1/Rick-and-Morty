@@ -24,9 +24,15 @@ class CharacterDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val character = repository.getCharacter(characterId)
+                val episodes = if (character.episode.isNotEmpty()) {
+                    repository.getEpisodes(character.episode)
+                } else {
+                    emptyList()
+                }
 
                 _state.value = _state.value.copy(
                     character = character,
+                    episodes = episodes,
                     isLoading = false
                 )
             } catch (e: Exception) {

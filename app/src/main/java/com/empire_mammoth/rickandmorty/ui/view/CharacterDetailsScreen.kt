@@ -41,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.empire_mammoth.rickandmorty.ui.viewmodel.CharacterDetailsViewModel
 import com.empire_mammoth.rickandmorty.data.model.Character
+import com.empire_mammoth.rickandmorty.data.model.Episode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,15 +86,18 @@ fun CharacterDetailsScreen(
                 character = state.character!!,
                 modifier = Modifier.padding(paddingValues),
                 onEpisodeClick = onEpisodeClick,
-                onLocationClick = onLocationClick
+                onLocationClick = onLocationClick,
+                episodes = state.episodes
             )
         }
     }
 }
 
+// CharacterDetailsScreen.kt
 @Composable
 private fun CharacterDetailsContent(
     character: Character,
+    episodes: List<Episode>,
     modifier: Modifier = Modifier,
     onEpisodeClick: (Int) -> Unit,
     onLocationClick: (Int) -> Unit
@@ -103,14 +107,67 @@ private fun CharacterDetailsContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Аватар и базовая информация
         CharacterHeader(character)
+        CharacterInfoCards(character, onLocationClick)
 
-        // Информационные карточки
-        CharacterInfoCards(
-            character = character,
-            onLocationClick = onLocationClick
+        // Добавляем секцию с эпизодами
+        if (episodes.isNotEmpty()) {
+            EpisodesSection(episodes, onEpisodeClick)
+        }
+    }
+}
+
+@Composable
+private fun EpisodesSection(
+    episodes: List<Episode>,
+    onEpisodeClick: (Int) -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(
+            text = "Episodes (${episodes.size})",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
+
+        episodes.forEach { episode ->
+            EpisodeItem(
+                episode = episode,
+                onClick = { onEpisodeClick(episode.id) },
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EpisodeItem(
+    episode: Episode,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = episode.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "${episode.episode} • ${episode.airDate}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+        }
     }
 }
 

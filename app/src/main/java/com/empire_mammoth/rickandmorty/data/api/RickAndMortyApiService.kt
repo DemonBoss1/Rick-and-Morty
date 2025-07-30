@@ -2,6 +2,7 @@ package com.empire_mammoth.rickandmorty.data.api
 
 import com.empire_mammoth.rickandmorty.data.model.CharactersResponse
 import com.empire_mammoth.rickandmorty.data.model.Character
+import com.empire_mammoth.rickandmorty.data.model.Episode
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -22,4 +23,7 @@ interface RickAndMortyApiService {
 
     @GET("character/{ids}")
     suspend fun getMultipleCharacters(@Path("ids") ids: String): List<Character>
+
+    @GET("episode/{ids}")
+    suspend fun getMultipleEpisodes(@Path("ids") ids: String): List<Episode>
 }

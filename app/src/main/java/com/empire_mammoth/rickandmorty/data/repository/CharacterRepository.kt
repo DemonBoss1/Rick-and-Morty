@@ -3,6 +3,7 @@ package com.empire_mammoth.rickandmorty.data.repository
 import com.empire_mammoth.rickandmorty.data.api.RickAndMortyApiService
 import com.empire_mammoth.rickandmorty.data.model.Character
 import com.empire_mammoth.rickandmorty.data.model.CharactersResponse
+import com.empire_mammoth.rickandmorty.data.model.Episode
 import com.empire_mammoth.rickandmorty.domain.model.CharacterFilter
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.delay
@@ -27,4 +28,9 @@ class CharacterRepository @Inject constructor(
     }
 
     suspend fun getCharacter(characterId: Int) = api.getCharacter(characterId)
+
+    suspend fun getEpisodes(episodeUrls: List<String>): List<Episode> {
+        val episodeIds = episodeUrls.map { it.split("/").last() }
+        return api.getMultipleEpisodes(episodeIds.joinToString(","))
+    }
 }
