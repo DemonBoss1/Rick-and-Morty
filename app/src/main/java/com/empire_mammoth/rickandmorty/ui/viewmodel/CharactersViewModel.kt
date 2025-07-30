@@ -40,7 +40,10 @@ class CharactersViewModel @Inject constructor(
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                val response = repository.loadCharactersPage(currentPage)
+                val response = repository.getCharacters(
+                    page = currentPage,
+                    filter = _filter.value
+                )
                 _characters.value += response.results
                 totalPages = response.info.pages
                 currentPage++
@@ -54,6 +57,8 @@ class CharactersViewModel @Inject constructor(
     }
 
     fun applyFilter(filter: CharacterFilter) {
+        currentPage = 1
+        _characters.value = emptyList()
         _filter.value = filter
         loadCharacters()
     }

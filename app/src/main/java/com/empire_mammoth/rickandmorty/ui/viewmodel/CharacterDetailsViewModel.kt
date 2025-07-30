@@ -1,10 +1,9 @@
 package com.empire_mammoth.rickandmorty.ui.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.empire_mammoth.rickandmorty.data.repository.CharacterRepository
-import com.empire_mammoth.rickandmorty.data.model.Character
+import com.empire_mammoth.rickandmorty.ui.navigation.model.CharacterDetailsState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,8 +39,3 @@ class CharacterDetailsViewModel @Inject constructor(
     }
 }
 
-data class CharacterDetailsState(
-    val character: Character? = null,
-    val isLoading: Boolean = false,
-    val error: String? = null
-)

@@ -3,6 +3,7 @@ package com.empire_mammoth.rickandmorty.data.repository
 import com.empire_mammoth.rickandmorty.data.api.RickAndMortyApiService
 import com.empire_mammoth.rickandmorty.data.model.Character
 import com.empire_mammoth.rickandmorty.data.model.CharactersResponse
+import com.empire_mammoth.rickandmorty.domain.model.CharacterFilter
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.delay
 import javax.inject.Inject
@@ -11,42 +12,17 @@ import javax.inject.Inject
 class CharacterRepository @Inject constructor(
     private val api: RickAndMortyApiService
 )  {
-    suspend fun loadAllCharacters(): List<Character> {
-        val allCharacters = mutableListOf<Character>()
-        var currentPage = 1
-        var totalPages = 1
-
-        while (currentPage <= totalPages) {
-            val response = api.getCharacters(page = currentPage)
-            allCharacters.addAll(response.results)
-            totalPages = response.info.pages
-            currentPage++
-
-            delay(100)
-        }
-
-        return allCharacters
-    }
-
-    suspend fun loadCharactersPage(page: Int = 1): CharactersResponse {
-        return api.getCharacters(page = page)
-    }
-
-    suspend fun filterCharacters(
-        name: String? = null,
-        status: String? = null,
-        species: String? = null,
-        type: String? = null,
-        gender: String? = null,
-        page: Int? = null
+    suspend fun getCharacters(
+        page: Int = 1,
+        filter: CharacterFilter? = null
     ): CharactersResponse {
         return api.getCharacters(
             page = page,
-            name = name,
-            status = status,
-            species = species,
-            type = type,
-            gender = gender
+            name = filter?.name,
+            status = filter?.status?.apiValue,
+            species = filter?.species,
+            type = filter?.type,
+            gender = filter?.gender?.apiValue
         )
     }
 

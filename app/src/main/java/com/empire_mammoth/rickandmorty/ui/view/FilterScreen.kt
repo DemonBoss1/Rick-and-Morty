@@ -1,5 +1,6 @@
 package com.empire_mammoth.rickandmorty.ui.view
 
+import androidx.annotation.ColorRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -23,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,9 +38,12 @@ fun FilterScreen(
     onApplyFilter: (CharacterFilter) -> Unit,
     onDismiss: () -> Unit
 ) {
+    var name by remember { mutableStateOf(currentFilter?.name ?: "") }
     var status by remember { mutableStateOf(currentFilter?.status) }
     var species by remember { mutableStateOf(currentFilter?.species ?: "") }
+    var type by remember { mutableStateOf(currentFilter?.type ?: "") }
     var gender by remember { mutableStateOf(currentFilter?.gender) }
+
 
     Column(
         modifier = Modifier
@@ -49,7 +52,14 @@ fun FilterScreen(
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        // Секция статуса
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Name") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        )
         Text(
             text = "Status",
             style = MaterialTheme.typography.titleSmall,
@@ -74,7 +84,6 @@ fun FilterScreen(
             }
         }
 
-        // Поле для вида
         OutlinedTextField(
             value = species,
             onValueChange = { species = it },
@@ -85,7 +94,6 @@ fun FilterScreen(
             shape = MaterialTheme.shapes.medium
         )
 
-        // Секция пола
         Text(
             text = "Gender",
             style = MaterialTheme.typography.titleSmall,
@@ -110,7 +118,6 @@ fun FilterScreen(
             }
         }
 
-        // Кнопки действий (закреплены внизу)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -144,15 +151,18 @@ fun FilterScreen(
                     onClick = {
                         onApplyFilter(
                             CharacterFilter(
+                                name = name.takeIf { it.isNotBlank() },
                                 status = status,
                                 species = species.takeIf { it.isNotBlank() },
+                                type = type.takeIf { it.isNotBlank() },
                                 gender = gender
                             )
                         )
                     },
-                    enabled = status != null || species.isNotBlank() || gender != null
+                    enabled = name.isNotBlank() || status != null ||
+                            species.isNotBlank() || type.isNotBlank() || gender != null
                 ) {
-                    Text("Apply")
+                    Text("Apply Filters")
                 }
             }
         }
